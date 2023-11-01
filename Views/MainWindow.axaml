@@ -27,7 +27,7 @@
     </Window.Resources>
     <StackPanel Spacing="20" HorizontalAlignment="Center">
         <NumericUpDown Value="{Binding OutputCombined}" TextConverter="{StaticResource HexConverter}"/>
-        <ItemsRepeater ItemsSource="{Binding  Outputs}">
+        <ItemsRepeater ItemsSource="{Binding  Outputs^}">
             <ItemsRepeater.Layout>
                 <StackLayout Orientation="Horizontal" Spacing="10"></StackLayout>
             </ItemsRepeater.Layout>
@@ -47,7 +47,7 @@
                 </DataTemplate>
             </ItemsRepeater.ItemTemplate>
         </ItemsRepeater>
-        <ItemsRepeater ItemsSource="{Binding Inputs}">
+        <ItemsRepeater ItemsSource="{Binding Inputs^}">
             <ItemsRepeater.Layout>
                 <StackLayout Orientation="Horizontal" Spacing="10"></StackLayout>
             </ItemsRepeater.Layout>

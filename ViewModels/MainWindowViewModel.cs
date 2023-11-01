@@ -1,38 +1,51 @@
 ﻿using DIGIOController.Models;
 using ReactiveUI;
+using Splat;
 using System;
 using System.Linq;
+using System.Reactive.Linq;
 
 namespace DIGIOController.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase {
-    public Bit[] Inputs { get; } = Enumerable.Range(0, 8).Select(i => 7 - i).Select(i => new Bit(i)).ToArray();
-    public Bit[] Outputs { get; } = Enumerable.Range(0, 8).Select(i => 7 - i).Select(i => new Bit(i)).ToArray();
-
-    static int Normalize(int value) => value & 0xFF;
+    readonly IDigioController _controller = Locator.Current.GetService<IDigioController>() ?? throw new NullReferenceException("No controller");
+    public IObservable<Bit[]> Inputs { get; }
+    public IObservable<Bit[]> Outputs { get; }
+    int Normalize(int value) => value & ~(~0 << _controller.OutputBits);
     
     int _outputCombined = 0;
+    //int? to work with some controls, which occasionally use null. Can never actually be null.
     public int? OutputCombined {
         get => _outputCombined;
         set => this.RaiseAndSetIfChanged(ref _outputCombined, Normalize(value ?? 0));
     }
 
     public MainWindowViewModel() {
-        this.WhenAnyValue(x => x.OutputCombined).Subscribe(output => {
-            for (int i = Outputs.Length - 1; i >= 0; i--) {
-                Outputs[i].Set = (output & 1) == 1;
-                output >>= 1;
-            }
-        });
-        foreach (Bit b in Outputs) {
-            int mask = 1 << b.Position;
-            b.WhenAnyValue(x => x.Set).Subscribe(bit => {
-                if (bit) {
+        _controller.TryConnect("TEST1").Wait();
+        Func<Bit[],Bit[]> arraySorter = array => {
+            array = (Bit[])array.Clone();
+            Array.Sort(array, (bit1, bit2) => bit2.Position.CompareTo(bit1.Position));
+            return array;
+        };
+        Inputs = _controller.Inputs.Select(arraySorter);
+        Outputs = _controller.Outputs.Select(arraySorter);
+        this.WhenAnyValue(x => x.OutputCombined).CombineLatest(Outputs)
+            .Subscribe(zipped => {
+                int outputCombined = zipped.First!.Value;
+                for (int i = _controller.OutputBits - 1; i >= 0; i--) {
+                    zipped.Second[i].Set = (outputCombined & 1) == 1;
+                    outputCombined >>= 1;
+                }
+            });
+        Outputs.SelectMany(bits => bits.ToObservable())
+            .Select(bit => bit.WhenAnyValue(x => x.Set).Zip(Observable.Return(bit))).Merge()
+            .Subscribe(zipped => {
+                int mask = 1 << zipped.Second.Position;
+                if (zipped.First) {
                     OutputCombined |= mask;
                 } else {
                     OutputCombined &= ~mask;
                 }
             });
-        }
     }
 }
