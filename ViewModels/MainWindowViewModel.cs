@@ -38,10 +38,10 @@ public class MainWindowViewModel : ViewModelBase {
                 }
             });
         Outputs.SelectMany(bits => bits.ToObservable())
-            .Select(bit => bit.WhenAnyValue(x => x.Set).Zip(Observable.Return(bit))).Merge()
+            .Select(bit => bit.WhenAnyValue(x => x.Set).Select(b => (b, bit))).Merge()
             .Subscribe(zipped => {
-                int mask = 1 << zipped.Second.Position;
-                if (zipped.First) {
+                int mask = 1 << zipped.Item2.Position;
+                if (zipped.Item1) {
                     OutputCombined |= mask;
                 } else {
                     OutputCombined &= ~mask;

@@ -25,6 +25,11 @@
             <c:HexConverter x:Key="HexConverter"/>
         </ResourceDictionary>
     </Window.Resources>
+    <Window.Styles>
+        <Style Selector="Ellipse.LightOn">
+            <Setter Property="Fill" Value="Red"/>
+        </Style>
+    </Window.Styles>
     <StackPanel Spacing="20" HorizontalAlignment="Center">
         <NumericUpDown Value="{Binding OutputCombined}" TextConverter="{StaticResource HexConverter}"/>
         <ItemsRepeater ItemsSource="{Binding  Outputs^}">
@@ -34,13 +39,7 @@
             <ItemsRepeater.ItemTemplate>
                 <DataTemplate x:DataType="m:Bit">
                     <StackPanel Spacing="10">
-                        <Ellipse Stroke="{DynamicResource ButtonForeground}" StrokeThickness="3" Height="40" Width="40" Classes.On="{Binding Set}">
-                            <Ellipse.Styles>
-                                <Style Selector="Ellipse.On">
-                                    <Setter Property="Fill" Value="Red"></Setter>
-                                </Style>
-                            </Ellipse.Styles>
-                        </Ellipse>
+                        <ToggleButton Theme="{StaticResource LightSwitch}" IsChecked="{Binding Set}"/>
                         <ToggleButton Theme="{StaticResource Switch}" HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding Set}"/>
                         <TextBlock HorizontalAlignment="Center" Text="{Binding Position, StringFormat='OUT{0}'}"></TextBlock>
                     </StackPanel>
@@ -54,13 +53,9 @@
             <ItemsRepeater.ItemTemplate>
                 <DataTemplate x:DataType="m:Bit">
                     <StackPanel Spacing="10">
-                        <Ellipse Stroke="{DynamicResource ButtonForeground}" StrokeThickness="3" Height="40" Width="40" Classes.On="{Binding Set}">
-                            <Ellipse.Styles>
-                                <Style Selector="Ellipse.On">
-                                    <Setter Property="Fill" Value="Red"></Setter>
-                                </Style>
-                            </Ellipse.Styles>
-                        </Ellipse>
+                        <Ellipse Stroke="{DynamicResource ButtonForeground}" StrokeThickness="3"
+                                 Fill="{DynamicResource ButtonBackground}" Height="40" Width="40"
+                                 Classes.LightOn="{Binding Set}"/>
                         <TextBlock HorizontalAlignment="Center" Text="{Binding Position, StringFormat='IN{0}'}"></TextBlock>
                     </StackPanel>
                 </DataTemplate>

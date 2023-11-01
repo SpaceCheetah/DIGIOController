@@ -1,5 +1,6 @@
 ﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:models="clr-namespace:DIGIOController.Models">
     <ControlTheme x:Key="Switch" TargetType="ToggleButton">
         <Setter Property="Template">
             <ControlTemplate>
@@ -18,6 +19,15 @@
                         </Rectangle.Transitions>
                     </Rectangle>
                 </Canvas>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+    <ControlTheme x:Key="LightSwitch" TargetType="ToggleButton">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Ellipse x:DataType="models:Bit" Stroke="{DynamicResource ButtonForeground}"
+                         StrokeThickness="3" Height="40" Width="40" Classes.LightOn="{Binding Set}"
+                         Fill="{DynamicResource ButtonBackground}"/>
             </ControlTemplate>
         </Setter>
     </ControlTheme>
