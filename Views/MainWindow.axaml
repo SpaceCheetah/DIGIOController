@@ -1,11 +1,13 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:DIGIOController.ViewModels"
+        xmlns:m="using:DIGIOController.Models"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="DIGIOController.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
+        x:CompileBindings="True"
         Icon="/Assets/avalonia-logo.ico"
         Title="DIGIOController">
 
@@ -14,7 +16,52 @@
              to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
         <vm:MainWindowViewModel/>
     </Design.DataContext>
-
-    <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="/Assets/Switch.axaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <StackPanel>
+        <ItemsRepeater ItemsSource="{Binding  Outputs}">
+            <ItemsRepeater.Layout>
+                <StackLayout Orientation="Horizontal" Spacing="10"></StackLayout>
+            </ItemsRepeater.Layout>
+            <ItemsRepeater.ItemTemplate>
+                <DataTemplate x:DataType="m:Bit">
+                    <StackPanel Spacing="10">
+                        <Ellipse Stroke="{DynamicResource ButtonForeground}" StrokeThickness="3" Height="40" Width="40" Classes.On="{Binding Set}">
+                            <Ellipse.Styles>
+                                <Style Selector="Ellipse.On">
+                                    <Setter Property="Fill" Value="Red"></Setter>
+                                </Style>
+                            </Ellipse.Styles>
+                        </Ellipse>
+                        <ToggleButton Theme="{StaticResource Switch}" HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding Set}"/>
+                        <TextBlock HorizontalAlignment="Center" Text="{Binding Position, StringFormat='IN{0}'}"></TextBlock>
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsRepeater.ItemTemplate>
+        </ItemsRepeater>
+        <ItemsRepeater ItemsSource="{Binding Inputs}">
+            <ItemsRepeater.Layout>
+                <StackLayout Orientation="Horizontal" Spacing="10"></StackLayout>
+            </ItemsRepeater.Layout>
+            <ItemsRepeater.ItemTemplate>
+                <DataTemplate x:DataType="m:Bit">
+                    <StackPanel Spacing="10">
+                        <Ellipse Stroke="{DynamicResource ButtonForeground}" StrokeThickness="3" Height="40" Width="40" Classes.On="{Binding Set}">
+                            <Ellipse.Styles>
+                                <Style Selector="Ellipse.On">
+                                    <Setter Property="Fill" Value="Red"></Setter>
+                                </Style>
+                            </Ellipse.Styles>
+                        </Ellipse>
+                        <TextBlock HorizontalAlignment="Center" Text="{Binding Position, StringFormat='OUT{0}'}"></TextBlock>
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsRepeater.ItemTemplate>
+        </ItemsRepeater>
+    </StackPanel>
 </Window>

@@ -1,0 +1,24 @@
+﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ControlTheme x:Key="Switch" TargetType="ToggleButton">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Canvas Width="40" Height="80">
+                    <Rectangle Height="80" Width="14" Canvas.Left="13" Fill="{DynamicResource ButtonForeground}"></Rectangle>
+                    <Rectangle Height="13" Width="40" Canvas.Top="67" Fill="{DynamicResource ButtonForeground}">
+                        <Rectangle.Styles>
+                            <Style Selector="ToggleButton:checked Rectangle">
+                                <Setter Property="Canvas.Top" Value="0"></Setter>
+                            </Style>
+                        </Rectangle.Styles>
+                        <Rectangle.Transitions>
+                            <Transitions>
+                                <DoubleTransition Property="Canvas.Top" Duration="0:0:0.1"></DoubleTransition>
+                            </Transitions>
+                        </Rectangle.Transitions>
+                    </Rectangle>
+                </Canvas>
+            </ControlTemplate>
+        </Setter>
+    </ControlTheme>
+</ResourceDictionary>
