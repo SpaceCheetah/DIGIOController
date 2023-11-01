@@ -3,6 +3,7 @@
         xmlns:vm="using:DIGIOController.ViewModels"
         xmlns:m="using:DIGIOController.Models"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:c="using:DIGIOController.ViewModels.Converters"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="DIGIOController.Views.MainWindow"
@@ -21,9 +22,11 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="/Assets/Switch.axaml"/>
             </ResourceDictionary.MergedDictionaries>
+            <c:HexConverter x:Key="HexConverter"/>
         </ResourceDictionary>
     </Window.Resources>
-    <StackPanel>
+    <StackPanel Spacing="20" HorizontalAlignment="Center">
+        <NumericUpDown Value="{Binding OutputCombined}" TextConverter="{StaticResource HexConverter}"/>
         <ItemsRepeater ItemsSource="{Binding  Outputs}">
             <ItemsRepeater.Layout>
                 <StackLayout Orientation="Horizontal" Spacing="10"></StackLayout>
@@ -39,7 +42,7 @@
                             </Ellipse.Styles>
                         </Ellipse>
                         <ToggleButton Theme="{StaticResource Switch}" HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding Set}"/>
-                        <TextBlock HorizontalAlignment="Center" Text="{Binding Position, StringFormat='IN{0}'}"></TextBlock>
+                        <TextBlock HorizontalAlignment="Center" Text="{Binding Position, StringFormat='OUT{0}'}"></TextBlock>
                     </StackPanel>
                 </DataTemplate>
             </ItemsRepeater.ItemTemplate>
@@ -58,7 +61,7 @@
                                 </Style>
                             </Ellipse.Styles>
                         </Ellipse>
-                        <TextBlock HorizontalAlignment="Center" Text="{Binding Position, StringFormat='OUT{0}'}"></TextBlock>
+                        <TextBlock HorizontalAlignment="Center" Text="{Binding Position, StringFormat='IN{0}'}"></TextBlock>
                     </StackPanel>
                 </DataTemplate>
             </ItemsRepeater.ItemTemplate>
