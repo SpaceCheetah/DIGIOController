@@ -52,21 +52,25 @@
         
         <StackPanel Spacing="20" HorizontalAlignment="Center" DockPanel.Dock="Bottom"
                     IsVisible="{Binding IsConnected^}">
-            <NumericUpDown Value="{Binding OutputCombined}" TextConverter="{StaticResource HexConverter}"/>
-            <ItemsRepeater ItemsSource="{Binding  Outputs^}">
-                <ItemsRepeater.Layout>
-                    <StackLayout Orientation="Horizontal" Spacing="10"></StackLayout>
-                </ItemsRepeater.Layout>
-                <ItemsRepeater.ItemTemplate>
-                    <DataTemplate x:DataType="m:Bit">
-                        <StackPanel Spacing="10">
-                            <ToggleButton Theme="{StaticResource LightSwitch}" IsChecked="{Binding Set}"/>
-                            <ToggleButton Theme="{StaticResource Switch}" HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding Set}"/>
-                            <TextBlock HorizontalAlignment="Center" Text="{Binding Position, StringFormat='OUT{0}'}"></TextBlock>
-                        </StackPanel>
-                    </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
-            </ItemsRepeater>
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <ItemsRepeater ItemsSource="{Binding  Outputs^}">
+                    <ItemsRepeater.Layout>
+                        <StackLayout Orientation="Horizontal" Spacing="10"></StackLayout>
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="m:Bit">
+                            <StackPanel Spacing="10">
+                                <ToggleButton Theme="{StaticResource LightSwitch}" IsChecked="{Binding Set}"/>
+                                <ToggleButton Theme="{StaticResource Switch}"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding Set}"/>
+                                <TextBlock HorizontalAlignment="Center" Text="{Binding Position, StringFormat='OUT{0}'}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+                <NumericUpDown VerticalAlignment="Bottom" Value="{Binding OutputCombined}"
+                               TextConverter="{StaticResource HexConverter}"/>
+            </StackPanel>
             <ItemsRepeater ItemsSource="{Binding Inputs^}">
                 <ItemsRepeater.Layout>
                     <StackLayout Orientation="Horizontal" Spacing="10"></StackLayout>
