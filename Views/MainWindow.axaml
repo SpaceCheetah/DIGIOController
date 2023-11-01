@@ -30,36 +30,58 @@
             <Setter Property="Fill" Value="Red"/>
         </Style>
     </Window.Styles>
-    <StackPanel Spacing="20" HorizontalAlignment="Center">
-        <NumericUpDown Value="{Binding OutputCombined}" TextConverter="{StaticResource HexConverter}"/>
-        <ItemsRepeater ItemsSource="{Binding  Outputs^}">
-            <ItemsRepeater.Layout>
-                <StackLayout Orientation="Horizontal" Spacing="10"></StackLayout>
-            </ItemsRepeater.Layout>
-            <ItemsRepeater.ItemTemplate>
-                <DataTemplate x:DataType="m:Bit">
-                    <StackPanel Spacing="10">
-                        <ToggleButton Theme="{StaticResource LightSwitch}" IsChecked="{Binding Set}"/>
-                        <ToggleButton Theme="{StaticResource Switch}" HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding Set}"/>
-                        <TextBlock HorizontalAlignment="Center" Text="{Binding Position, StringFormat='OUT{0}'}"></TextBlock>
-                    </StackPanel>
-                </DataTemplate>
-            </ItemsRepeater.ItemTemplate>
-        </ItemsRepeater>
-        <ItemsRepeater ItemsSource="{Binding Inputs^}">
-            <ItemsRepeater.Layout>
-                <StackLayout Orientation="Horizontal" Spacing="10"></StackLayout>
-            </ItemsRepeater.Layout>
-            <ItemsRepeater.ItemTemplate>
-                <DataTemplate x:DataType="m:Bit">
-                    <StackPanel Spacing="10">
-                        <Ellipse Stroke="{DynamicResource ButtonForeground}" StrokeThickness="3"
-                                 Fill="{DynamicResource ButtonBackground}" Height="40" Width="40"
-                                 Classes.LightOn="{Binding Set}"/>
-                        <TextBlock HorizontalAlignment="Center" Text="{Binding Position, StringFormat='IN{0}'}"></TextBlock>
-                    </StackPanel>
-                </DataTemplate>
-            </ItemsRepeater.ItemTemplate>
-        </ItemsRepeater>
-    </StackPanel>
+    <DockPanel>
+        <TextBlock HorizontalAlignment="Center" Text="{Binding Error}" DockPanel.Dock="Top"/>
+        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto,Auto,*" DockPanel.Dock="Top"
+              IsVisible="{Binding !IsConnected^}">
+            <Button Grid.Row="0" Grid.Column="1" Margin="0,0,10,0"
+                    Command="{Binding Connect}">Connect to </Button>
+            <ComboBox Grid.Row="0" Grid.Column="2" SelectedItem="{Binding SelectedPort}"
+                      ItemsSource="{Binding ComPorts}"/>
+            <Button Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Center"
+                    Command="{Binding AutoConnect}" Margin="0,10,0,0">
+                AutoConnect
+            </Button>
+        </Grid>
+        <Grid ColumnDefinitions="*,Auto,Auto,*" DockPanel.Dock="Top" Margin="0,0,0,20"
+              IsVisible="{Binding IsConnected^}">
+            <TextBlock Grid.Column="1" VerticalAlignment="Center" Margin="0,0,20,0"
+                       Text="{Binding ConnectedPort^, StringFormat='Connected to {0}'}"/>
+            <Button Grid.Column="2" Command="{Binding Disconnect}">Disconnect</Button>
+        </Grid>
+        
+        <StackPanel Spacing="20" HorizontalAlignment="Center" DockPanel.Dock="Bottom"
+                    IsVisible="{Binding IsConnected^}">
+            <NumericUpDown Value="{Binding OutputCombined}" TextConverter="{StaticResource HexConverter}"/>
+            <ItemsRepeater ItemsSource="{Binding  Outputs^}">
+                <ItemsRepeater.Layout>
+                    <StackLayout Orientation="Horizontal" Spacing="10"></StackLayout>
+                </ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="m:Bit">
+                        <StackPanel Spacing="10">
+                            <ToggleButton Theme="{StaticResource LightSwitch}" IsChecked="{Binding Set}"/>
+                            <ToggleButton Theme="{StaticResource Switch}" HorizontalAlignment="Center" VerticalAlignment="Center" IsChecked="{Binding Set}"/>
+                            <TextBlock HorizontalAlignment="Center" Text="{Binding Position, StringFormat='OUT{0}'}"></TextBlock>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+            <ItemsRepeater ItemsSource="{Binding Inputs^}">
+                <ItemsRepeater.Layout>
+                    <StackLayout Orientation="Horizontal" Spacing="10"></StackLayout>
+                </ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="m:Bit">
+                        <StackPanel Spacing="10">
+                            <Ellipse Stroke="{DynamicResource ButtonForeground}" StrokeThickness="3"
+                                     Fill="{DynamicResource ButtonBackground}" Height="40" Width="40"
+                                     Classes.LightOn="{Binding Set}"/>
+                            <TextBlock HorizontalAlignment="Center" Text="{Binding Position, StringFormat='IN{0}'}"></TextBlock>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+        </StackPanel>
+    </DockPanel>
 </Window>

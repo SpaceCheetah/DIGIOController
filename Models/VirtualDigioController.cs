@@ -33,10 +33,19 @@ public class VirtualDigioController : IDigioController {
         _outputs.OnNext(Enumerable.Range(0, 8).Select(i => new Bit(i)).ToArray());
         _isConnected.OnNext(true);
         _currentPort.OnNext("TEST1");
+        Random random = new();
+        Observable.Interval(TimeSpan.FromMilliseconds(100))
+            .CombineLatest(Inputs, (_, bits) => bits)
+            .TakeUntil(IsConnected.Where(connected => !connected))
+            .Subscribe(bits => {
+                foreach(Bit bit in bits) {
+                    bit.Set = random.Next(2) == 0;
+                }
+            });
         return Task.FromResult(true);
     }
     public void Disconnect() {
-        if (_isConnected.Value) return;
+        if (!_isConnected.Value) return;
         _isConnected.OnNext(false);
         _currentPort.OnNext("");
     }
