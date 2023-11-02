@@ -34,7 +34,7 @@ public class VirtualDigioController : IDigioController {
         _isConnected.OnNext(true);
         _currentPort.OnNext("TEST1");
         Random random = new();
-        Observable.Interval(TimeSpan.FromMilliseconds(100))
+        Observable.Interval(TimeSpan.FromMilliseconds(1000))
             .CombineLatest(Inputs, (_, bits) => bits)
             .TakeUntil(IsConnected.Where(connected => !connected))
             .Subscribe(bits => {

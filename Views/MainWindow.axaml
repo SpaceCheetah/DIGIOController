@@ -30,8 +30,8 @@
             <Setter Property="Fill" Value="Red"/>
         </Style>
     </Window.Styles>
-    <DockPanel>
-        <TextBlock HorizontalAlignment="Center" Text="{Binding Error}" DockPanel.Dock="Top"/>
+    <StackPanel Spacing="20">
+        <TextBlock HorizontalAlignment="Center" Text="{Binding Error}"/>
         <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto,Auto,*" DockPanel.Dock="Top"
               IsVisible="{Binding !IsConnected^}">
             <Button Grid.Row="0" Grid.Column="1" Margin="0,0,10,0"
@@ -43,14 +43,13 @@
                 AutoConnect
             </Button>
         </Grid>
-        <Grid ColumnDefinitions="*,Auto,Auto,*" DockPanel.Dock="Top" Margin="0,0,0,20"
+        <Grid ColumnDefinitions="*,Auto,Auto,*" Margin="0,0,0,20"
               IsVisible="{Binding IsConnected^}">
             <TextBlock Grid.Column="1" VerticalAlignment="Center" Margin="0,0,20,0"
                        Text="{Binding ConnectedPort^, StringFormat='Connected to {0}'}"/>
             <Button Grid.Column="2" Command="{Binding Disconnect}">Disconnect</Button>
         </Grid>
-        
-        <StackPanel Spacing="20" HorizontalAlignment="Center" DockPanel.Dock="Bottom"
+        <StackPanel Spacing="20" HorizontalAlignment="Center"
                     IsVisible="{Binding IsConnected^}">
             <StackPanel Orientation="Horizontal" Spacing="10">
                 <ItemsRepeater ItemsSource="{Binding  Outputs^}">
@@ -69,7 +68,7 @@
                     </ItemsRepeater.ItemTemplate>
                 </ItemsRepeater>
                 <NumericUpDown VerticalAlignment="Bottom" Value="{Binding OutputCombined}"
-                               TextConverter="{StaticResource HexConverter}"/>
+                               TextConverter="{StaticResource HexConverter}" Width="110"/>
             </StackPanel>
             <ItemsRepeater ItemsSource="{Binding Inputs^}">
                 <ItemsRepeater.Layout>
@@ -81,11 +80,13 @@
                             <Ellipse Stroke="{DynamicResource ButtonForeground}" StrokeThickness="3"
                                      Fill="{DynamicResource ButtonBackground}" Height="40" Width="40"
                                      Classes.LightOn="{Binding Set}"/>
-                            <TextBlock HorizontalAlignment="Center" Text="{Binding Position, StringFormat='IN{0}'}"></TextBlock>
+                            <TextBlock HorizontalAlignment="Center" Text="{Binding Position, StringFormat='IN{0}'}"/>
                         </StackPanel>
                     </DataTemplate>
                 </ItemsRepeater.ItemTemplate>
             </ItemsRepeater>
         </StackPanel>
-    </DockPanel>
+        <Button HorizontalAlignment="Center" IsVisible="{Binding IsConnected^}" 
+                Command="{Binding GenerateTruthTable}">Generate Truth Table</Button>
+    </StackPanel>
 </Window>

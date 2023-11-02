@@ -1,10 +1,15 @@
-﻿using DIGIOController.Models;
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using DIGIOController.Models;
+using DIGIOController.Views;
 using ReactiveUI;
 using Splat;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 
@@ -16,6 +21,8 @@ public class MainWindowViewModel : ViewModelBase {
     public IObservable<Bit[]> Outputs { get; }
     public IObservable<bool> IsConnected => _controller.IsConnected;
     public IObservable<string> ConnectedPort => _controller.CurrentPort;
+
+    TruthTableDialogViewModel _truthTableDialogViewModel;
     int Normalize(int value) => value & ~(~0 << _controller.OutputBits);
 
     string _error = "";
@@ -44,6 +51,41 @@ public class MainWindowViewModel : ViewModelBase {
         }
     }
 
+    public async Task GenerateTruthTable() {
+        _truthTableDialogViewModel.Confirmed = false;
+        Window mainWindow = ((IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).MainWindow!;
+        Window dialog = new TruthTableDialog { DataContext = _truthTableDialogViewModel };
+        await dialog.ShowDialog(mainWindow);
+        if (!_truthTableDialogViewModel.Confirmed) return;
+        List<int> outputOrder = new();
+        List<int> inputOrder = new();
+        List<string> labels = new();
+        foreach (var column in _truthTableDialogViewModel.Outputs.Where(column => column.Enabled)) {
+            outputOrder.Add(column.BitPosition);
+            labels.Add(column.Label);
+        }
+        foreach (var column in _truthTableDialogViewModel.Inputs.Where(column => column.Enabled)) {
+            inputOrder.Add(column.BitPosition);
+            labels.Add(column.Label);
+        }
+        TruthTable.TruthTableSettings settings = new() {
+            Delay = TimeSpan.FromMilliseconds(_truthTableDialogViewModel.DelayMilliseconds),
+            OutputOrder = outputOrder,
+            InputOrder = inputOrder,
+            Labels = labels
+        };
+        List<List<bool>> table = await TruthTable.GenerateTruthTable(_controller, settings);
+        string filePath = Path.Combine(Path.GetTempPath(), Path.ChangeExtension(Guid.NewGuid().ToString(), ".csv"));
+        await using (var writer = new StreamWriter(filePath)) {
+            await writer.WriteAsync(TruthTable.ConvertToCsv(table, settings));
+        }
+        ProcessStartInfo psInfo = new ProcessStartInfo {
+            FileName = filePath,
+            UseShellExecute = true
+        };
+        Process.Start(psInfo);
+    }
+
     public void Disconnect() {
         _controller.Disconnect();
     }
@@ -69,6 +111,7 @@ public class MainWindowViewModel : ViewModelBase {
     }
 
     public MainWindowViewModel() {
+        _truthTableDialogViewModel = new(_controller.OutputBits, _controller.InputBits);
         Func<Bit[],Bit[]> arraySorter = array => {
             array = (Bit[])array.Clone();
             Array.Sort(array, (bit1, bit2) => bit2.Position.CompareTo(bit1.Position));
@@ -100,5 +143,9 @@ public class MainWindowViewModel : ViewModelBase {
                 SelectedPort = ComPorts.First();
             }
         });
+        _controller.IsConnected.Where(connected => !connected)
+            .Subscribe(_ => {
+                OutputCombined = 0;
+            });
     }
 }

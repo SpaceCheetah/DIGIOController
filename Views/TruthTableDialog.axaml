@@ -1,0 +1,85 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:vm="using:DIGIOController.ViewModels"
+        xmlns:v="using:DIGIOController.Views"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="DIGIOController.Views.TruthTableDialog"
+        x:DataType="vm:TruthTableDialogViewModel"
+        Title="Truth Table Settings">
+    <Window.Styles>
+        <Style Selector="v|ReorderingItemsRepeater:not(.dragging) StackPanel:pointerover">
+            <Setter Property="Background" Value="{DynamicResource ButtonBackgroundPointerOver}"/>
+        </Style>
+        <Style Selector="Border.dragged StackPanel">
+            <Setter Property="Background" Value="{DynamicResource ButtonBackgroundPressed}"/>
+        </Style>
+    </Window.Styles>
+    <Design.DataContext>
+        <vm:TruthTableDialogViewModel>
+            <x:Arguments>
+                <x:Int32>8</x:Int32>
+                <x:Int32>8</x:Int32>
+            </x:Arguments>
+        </vm:TruthTableDialogViewModel>
+    </Design.DataContext>
+    <StackPanel Spacing="20">
+        <TextBlock Text="Outputs" HorizontalAlignment="Center" FontWeight="Bold"/>
+        <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+            <StackPanel Spacing="10">
+                <TextBlock Text="Pin"/>
+                <TextBlock Text="Label"/>
+                <TextBlock Text="Enabled"/>
+            </StackPanel>
+            <v:ReorderingItemsRepeater ItemsList="{Binding Outputs}">
+                <ItemsRepeater.Layout><StackLayout Orientation="Horizontal" Spacing="10"/></ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TruthTableColumn">
+                        <Border BorderBrush="{DynamicResource TextControlForeground}" BorderThickness="2"
+                                VerticalAlignment="Top" CornerRadius="5">
+                            <StackPanel VerticalAlignment="Center" Background="{DynamicResource ButtonBackground}">
+                                <TextBlock Text="{Binding BitPosition, StringFormat='OUT{0}'}" HorizontalAlignment="Center"/>
+                                <TextBox TextAlignment="Center" Text="{Binding Label}"/>
+                                <CheckBox IsChecked="{Binding Enabled}" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </v:ReorderingItemsRepeater>
+        </StackPanel>
+        <TextBlock Text="Inputs" FontWeight="Bold" HorizontalAlignment="Center"/>
+        <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+            <StackPanel Spacing="10">
+                <TextBlock Text="Pin"/>
+                <TextBlock Text="Label"/>
+                <TextBlock Text="Enabled"/>
+            </StackPanel>
+            <v:ReorderingItemsRepeater ItemsList="{Binding Inputs}">
+                <ItemsRepeater.Layout><StackLayout Orientation="Horizontal" Spacing="10"/></ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TruthTableColumn">
+                        <Border BorderBrush="{DynamicResource TextControlForeground}" BorderThickness="2"
+                                VerticalAlignment="Top" CornerRadius="5">
+                            <StackPanel VerticalAlignment="Center" Background="{DynamicResource ButtonBackground}">
+                                <TextBlock Text="{Binding BitPosition, StringFormat='IN{0}'}" HorizontalAlignment="Center"/>
+                                <TextBox TextAlignment="Center" Text="{Binding Label}"/>
+                                <CheckBox IsChecked="{Binding Enabled}" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </v:ReorderingItemsRepeater>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+            <TextBlock Text="Delay between setting output and getting input in milliseconds: "
+                       VerticalAlignment="Center"/>
+            <NumericUpDown Value="{Binding DelayMilliseconds}" HorizontalAlignment="Left"
+                           FormatString="0" Increment="10" Minimum="1"/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="20">
+            <Button Command="{Binding ConfirmCommand}">Generate Table</Button>
+            <Button Command="{Binding CancelCommand}">Cancel</Button>
+        </StackPanel>
+    </StackPanel>
+</Window>

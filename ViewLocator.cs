@@ -6,7 +6,10 @@ using DIGIOController.ViewModels;
 namespace DIGIOController;
 
 public class ViewLocator : IDataTemplate {
-    public Control Build(object data) {
+    public Control Build(object? data) {
+        if (data is null) {
+            return new TextBlock { Text = "NULL" };
+        }
         var name = data.GetType().FullName!.Replace("ViewModel", "View");
         var type = Type.GetType(name);
 
@@ -17,5 +20,5 @@ public class ViewLocator : IDataTemplate {
         return new TextBlock { Text = "Not Found: " + name };
     }
 
-    public bool Match(object data) { return data is ViewModelBase; }
+    public bool Match(object? data) { return data is ViewModelBase; }
 }
