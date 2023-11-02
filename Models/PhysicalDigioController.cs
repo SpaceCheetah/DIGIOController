@@ -73,7 +73,7 @@ public class PhysicalDigioController : IDigioController {
         foreach (Bit output in outputs) {
             result |= 1 << output.Position;
         }
-        return await WriteAndReceive(result.ToString("X2"));
+        return await WriteAndReceive("P" + result.ToString("X2"));
     }
 
     async Task ParseUpdate(string update) {
