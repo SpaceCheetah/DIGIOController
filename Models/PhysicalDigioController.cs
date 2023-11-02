@@ -26,7 +26,7 @@ public class PhysicalDigioController : IDigioController {
     public IEnumerable<string> GetComPorts() => SerialPort.GetPortNames();
 
     SerialPort? _serialPort = null;
-    readonly Mutex mut = new();
+    readonly object _serialLock = new();
     public async Task<bool> TryConnect(string port) {
         if (_isConnected.Value) {
             Disconnect();
@@ -70,7 +70,7 @@ public class PhysicalDigioController : IDigioController {
     async Task<string> SendUpdate() {
         Bit[] outputs = await Outputs.FirstAsync();
         int result = 0;
-        foreach (Bit output in outputs) {
+        foreach (Bit output in outputs.Where(output => output.Set)) {
             result |= 1 << output.Position;
         }
         return await WriteAndReceive("P" + result.ToString("X2"));
@@ -89,11 +89,12 @@ public class PhysicalDigioController : IDigioController {
             Disconnect();
         }
         return await Task.Run(() => {
-            mut.WaitOne();
-            _serialPort?.Write($"<{toWrite}>");
-            _serialPort?.ReadTo("<");
-            string result = _serialPort?.ReadTo(">") ?? string.Empty;
-            mut.ReleaseMutex();
+            string result;
+            lock (_serialLock) {
+                _serialPort?.Write($"<{toWrite}>");
+                _serialPort?.ReadTo("<");
+                result = _serialPort?.ReadTo(">") ?? string.Empty;
+            }
             return result;
         });
     }
