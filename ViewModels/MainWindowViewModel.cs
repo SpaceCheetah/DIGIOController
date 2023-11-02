@@ -86,6 +86,10 @@ public class MainWindowViewModel : ViewModelBase {
         Process.Start(psInfo);
     }
 
+    public async Task RefreshComPorts() { 
+        ComPorts = (await _controller.GetComPorts()).ToList();
+    }
+
     public void Disconnect() {
         _controller.Disconnect();
     }

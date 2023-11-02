@@ -21,8 +21,14 @@ public class VirtualDigioController : IDigioController {
     public int InputBits => 8;
     public int OutputBits => 8;
 
+    int _comIndex = 0;
     public Task<IEnumerable<string>> GetComPorts() {
-        return Task.FromResult<IEnumerable<string>>(new[] { "TEST0", "TEST1" });
+        List<string> ports = new();
+        for (int i = 0; i <= _comIndex; i++) {
+            ports.Add($"TEST{i}");
+        }
+        _comIndex++;
+        return Task.FromResult<IEnumerable<string>>(ports);
     }
     public Task<bool> TryConnect(string port) {
         if (_isConnected.Value) {
