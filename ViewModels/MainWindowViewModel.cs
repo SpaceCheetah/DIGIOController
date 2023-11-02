@@ -22,7 +22,7 @@ public class MainWindowViewModel : ViewModelBase {
     public IObservable<bool> IsConnected => _controller.IsConnected;
     public IObservable<string> ConnectedPort => _controller.CurrentPort;
 
-    TruthTableDialogViewModel _truthTableDialogViewModel;
+    readonly TruthTableDialogViewModel _truthTableDialogViewModel;
     int Normalize(int value) => value & ~(~0 << _controller.OutputBits);
 
     string _error = "";
@@ -86,8 +86,8 @@ public class MainWindowViewModel : ViewModelBase {
         Process.Start(psInfo);
     }
 
-    public async Task RefreshComPorts() { 
-        ComPorts = (await _controller.GetComPorts()).ToList();
+    public void RefreshComPorts() { 
+        ComPorts = _controller.GetComPorts().ToList();
     }
 
     public void Disconnect() {
@@ -141,12 +141,10 @@ public class MainWindowViewModel : ViewModelBase {
                     OutputCombined &= ~mask;
                 }
             });
-        Observable.FromAsync(_controller.GetComPorts).Subscribe(ports => {
-            ComPorts = ports.ToList();
-            if (ComPorts.Count > 0) {
-                SelectedPort = ComPorts.First();
-            }
-        });
+        ComPorts = _controller.GetComPorts().ToList();
+        if (ComPorts.Count > 0) {
+            SelectedPort = ComPorts.First();
+        }
         _controller.IsConnected.Where(connected => !connected)
             .Subscribe(_ => {
                 OutputCombined = 0;

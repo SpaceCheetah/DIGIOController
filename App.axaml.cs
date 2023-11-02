@@ -12,7 +12,7 @@ public partial class App : Application {
     public override void Initialize() { AvaloniaXamlLoader.Load(this); }
 
     public override void OnFrameworkInitializationCompleted() {
-        Locator.CurrentMutable.RegisterConstant(new VirtualDigioController(), typeof(IDigioController));
+        Locator.CurrentMutable.RegisterConstant(new PhysicalDigioController(), typeof(IDigioController));
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) {
             desktop.MainWindow = new MainWindow {
                 DataContext = new MainWindowViewModel(),

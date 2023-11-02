@@ -14,12 +14,12 @@ public interface IDigioController {
     /**
      * List of COM ports on the system
      */
-    Task<IEnumerable<string>> GetComPorts();
+    IEnumerable<string> GetComPorts();
     /**
      * Attempt connecting to all COM ports in sequence, until one succeeds
      */
     async Task<bool> TryAutoconnect() {
-        IEnumerable<string> ports = await GetComPorts();
+        IEnumerable<string> ports = GetComPorts();
         foreach (string port in ports) {
             if (await TryConnect(port)) {
                 return true;

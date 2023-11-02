@@ -22,13 +22,13 @@ public class VirtualDigioController : IDigioController {
     public int OutputBits => 8;
 
     int _comIndex = 0;
-    public Task<IEnumerable<string>> GetComPorts() {
+    public IEnumerable<string> GetComPorts() {
         List<string> ports = new();
         for (int i = 0; i <= _comIndex; i++) {
             ports.Add($"TEST{i}");
         }
         _comIndex++;
-        return Task.FromResult<IEnumerable<string>>(ports);
+        return ports;
     }
     public Task<bool> TryConnect(string port) {
         if (_isConnected.Value) {
