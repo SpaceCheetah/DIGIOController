@@ -51,8 +51,8 @@ public class MainWindowViewModel : ViewModelBase {
         }
     }
 
-    int _clock = 0;
-    public int Clock {
+    decimal? _clock = 0;
+    public decimal? Clock {
         get => _clock;
         set => this.RaiseAndSetIfChanged(ref _clock, value);
     }
@@ -162,7 +162,14 @@ public class MainWindowViewModel : ViewModelBase {
             .Merge(_controller.IsConnected.Where(connected => connected).Select(_ => Clock))
             .Skip(2)
             .Subscribe(clock => {
-                _controller.SetClock(clock);
+                int hz = 0;
+                try {
+                    if (clock is not null) {
+                        hz = decimal.ToInt32(clock.Value);
+                    }
+                }
+                catch (OverflowException) { }
+                _controller.SetClock(decimal.ToInt32(hz));
             });
     }
 }

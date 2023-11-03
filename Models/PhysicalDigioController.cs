@@ -73,7 +73,12 @@ public class PhysicalDigioController : IDigioController {
         _serialPort.Handshake = Handshake.None;
         _serialPort.ReadTimeout = 500;
         _serialPort.WriteTimeout = 500;
-        _serialPort.Open();
+        try {
+            _serialPort.Open();
+        }
+        catch (Exception) {
+            return false;
+        }
         Observable.Interval(TimeSpan.FromMilliseconds(10))
             .TakeUntil(_isConnected.Skip(1).Where(connected => !connected))
             .SelectMany(_ => GetNextOutput())
