@@ -169,7 +169,7 @@ public class MainWindowViewModel : ViewModelBase {
                     }
                 }
                 catch (OverflowException) { }
-                _controller.SetClock(decimal.ToInt32(hz));
+                _controller.SetClock(hz);
             });
     }
 }
