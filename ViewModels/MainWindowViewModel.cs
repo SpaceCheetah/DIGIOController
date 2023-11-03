@@ -51,6 +51,12 @@ public class MainWindowViewModel : ViewModelBase {
         }
     }
 
+    int _clock = 0;
+    public int Clock {
+        get => _clock;
+        set => this.RaiseAndSetIfChanged(ref _clock, value);
+    }
+
     public async Task GenerateTruthTable() {
         _truthTableDialogViewModel.Confirmed = false;
         Window mainWindow = ((IClassicDesktopStyleApplicationLifetime)Application.Current!.ApplicationLifetime!).MainWindow!;
@@ -88,6 +94,9 @@ public class MainWindowViewModel : ViewModelBase {
 
     public void RefreshComPorts() { 
         ComPorts = _controller.GetComPorts().ToList();
+        if (SelectedPort == "" && ComPorts.Count > 0) {
+            SelectedPort = ComPorts[0];
+        }
     }
 
     public void Disconnect() {
@@ -148,6 +157,12 @@ public class MainWindowViewModel : ViewModelBase {
         _controller.IsConnected.Where(connected => !connected)
             .Subscribe(_ => {
                 OutputCombined = 0;
+            });
+        this.WhenAnyValue(x => x.Clock)
+            .Merge(_controller.IsConnected.Where(connected => connected).Select(_ => Clock))
+            .Skip(2)
+            .Subscribe(clock => {
+                _controller.SetClock(clock);
             });
     }
 }

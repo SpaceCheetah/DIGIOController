@@ -75,6 +75,10 @@
                 <NumericUpDown VerticalAlignment="Bottom" Value="{Binding OutputCombined}"
                                TextConverter="{StaticResource HexConverter}" Width="110"/>
             </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                <TextBlock VerticalAlignment="Center" Text="Clock:"/>
+                <NumericUpDown Minimum="0" FormatString="0" Value="{Binding Clock}"/>
+            </StackPanel>
             <ItemsRepeater ItemsSource="{Binding Inputs^}">
                 <ItemsRepeater.Layout>
                     <StackLayout Orientation="Horizontal" Spacing="10"></StackLayout>

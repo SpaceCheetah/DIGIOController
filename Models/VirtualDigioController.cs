@@ -55,4 +55,7 @@ public class VirtualDigioController : IDigioController {
         _isConnected.OnNext(false);
         _currentPort.OnNext("");
     }
+    public Task SetClock(int frequencyHz) {
+        return Task.CompletedTask;
+    }
 }

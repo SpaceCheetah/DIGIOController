@@ -38,15 +38,15 @@ public class PhysicalDigioController : IDigioController {
         _serialPort.DataBits = 8;
         _serialPort.StopBits = StopBits.One;
         _serialPort.Handshake = Handshake.None;
-        _serialPort.ReadTimeout = 500;
-        _serialPort.WriteTimeout = 500;
+        _serialPort.ReadTimeout = 100;
+        _serialPort.WriteTimeout = 100;
         _serialPort.Open();
         if (await WriteAndReceive("XX") == "YY") {
             _currentPort.OnNext(port);
             _inputs.OnNext(Enumerable.Range(0, 8).Select(i => new Bit(i)).ToArray());
             _outputs.OnNext(Enumerable.Range(0, 8).Select(i => new Bit(i)).ToArray());
             _isConnected.OnNext(true);
-            Observable.Interval(TimeSpan.FromMilliseconds(10))
+            Observable.Interval(TimeSpan.FromMilliseconds(20))
                 .TakeUntil(_isConnected.Where(connected => !connected))
                 .SelectMany(_ => Observable.FromAsync(SendUpdate))
                 .Where(response => response != String.Empty)
@@ -66,6 +66,14 @@ public class PhysicalDigioController : IDigioController {
             _currentPort.OnNext("");
         }
     }
+    public async Task SetClock(int frequencyHz) {
+        if (!_isConnected.Value) {
+            throw new InvalidOperationException("Cannot set clock when not connected");
+        }
+        int clockRegister = frequencyHz == 0 ? 0 : 0x7A12 / frequencyHz;
+        //This (and only this) value are sent in decimal rather than hex
+        await ImportantWrite($"C{clockRegister}");
+    }
 
     async Task<string> SendUpdate() {
         Bit[] outputs = await Outputs.FirstAsync();
@@ -84,18 +92,41 @@ public class PhysicalDigioController : IDigioController {
         }
     }
 
+    //High failure rate (messages will be lost if read takes longer than usual), but that's not a big deal with this protocol
     async Task<string> WriteAndReceive(string toWrite) {
         if (_serialPort is null || !_serialPort.IsOpen) {
             Disconnect();
         }
         return await Task.Run(() => {
-            string result;
-            lock (_serialLock) {
-                _serialPort?.Write($"<{toWrite}>");
-                _serialPort?.ReadTo("<");
-                result = _serialPort?.ReadTo(">") ?? string.Empty;
+            string result = String.Empty;
+            if (Monitor.TryEnter(_serialLock)) {
+                try {
+                    _serialPort?.Write($"<{toWrite}>");
+                    _serialPort?.ReadTo("<");
+                    result = _serialPort?.ReadTo(">") ?? string.Empty;
+                }
+                catch (TimeoutException) { }
+                catch (InvalidOperationException) { }
+                finally {
+                    Monitor.Exit(_serialLock);
+                }
             }
             return result;
+        });
+    }
+    //This write should be more reliable, meant for information that won't immediately be retransmitted
+    async Task ImportantWrite(string toWrite) {
+        await Task.Run(() => {
+            lock (_serialLock) {
+                bool done = false;
+                while (!done) {
+                    try {
+                        _serialPort?.Write($"<{toWrite}>");
+                        done = true;
+                    }
+                    catch (TimeoutException) { }
+                }
+            }
         });
     }
 }

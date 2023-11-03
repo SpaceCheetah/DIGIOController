@@ -18,7 +18,7 @@ public class TruthTableDialogViewModel : ViewModelBase {
         set => this.RaiseAndSetIfChanged(ref _confirmed, value);
     }
 
-    int _delayMilliseconds = 30;
+    int _delayMilliseconds = 50;
     public int DelayMilliseconds {
         get => _delayMilliseconds;
         set => this.RaiseAndSetIfChanged(ref _delayMilliseconds, value);
