@@ -72,7 +72,7 @@ public class PhysicalDigioController : IDigioController {
         }
         int clockRegister = frequencyHz == 0 ? 0 : 0x7A12 / frequencyHz;
         //This (and only this) value are sent in decimal rather than hex
-        await ImportantWrite($"C{clockRegister}");
+        await ImportantWrite($"C{clockRegister:D5}");
     }
 
     async Task<string> SendUpdate() {
@@ -81,7 +81,7 @@ public class PhysicalDigioController : IDigioController {
         foreach (Bit output in outputs.Where(output => output.Set)) {
             result |= 1 << output.Position;
         }
-        return await WriteAndReceive("P" + result.ToString("X2"));
+        return await WriteAndReceive($"P{result:X2}");
     }
 
     async Task ParseUpdate(string update) {
