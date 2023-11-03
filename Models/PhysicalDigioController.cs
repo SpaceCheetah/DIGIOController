@@ -1,9 +1,11 @@
-﻿using System;
+﻿using ReactiveUI;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
 using System.IO.Ports;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
@@ -26,7 +28,38 @@ public class PhysicalDigioController : IDigioController {
     public IEnumerable<string> GetComPorts() => SerialPort.GetPortNames();
 
     SerialPort? _serialPort = null;
-    readonly object _serialLock = new();
+    readonly object _readLock = new();
+    readonly Subject<string> _messages = new();
+    IEnumerable<string> DataSequence() {
+        if (!Monitor.TryEnter(_readLock)) {
+            throw new InvalidOperationException("Cannot read on multiple threads");
+        }
+        try {
+            while (true) {
+                string result;
+                try {
+                    _serialPort?.ReadTo("<");
+                    result = _serialPort?.ReadTo(">") ?? string.Empty;
+                }
+                catch (Exception e) when (e is TimeoutException or InvalidOperationException or OperationCanceledException) {
+                    break;
+                }
+                yield return result;
+            }
+        }
+        finally {
+            Monitor.Exit(_readLock);
+        }
+    }
+
+    async Task<string> GetNextOutput() {
+        int output = 0;
+        foreach (Bit bit in (await Outputs.FirstAsync()).Where(b => b.Set)) {
+            output |= 1 << bit.Position;
+        }
+        return $"P{output:X2}";
+    }
+    
     public async Task<bool> TryConnect(string port) {
         if (_isConnected.Value) {
             Disconnect();
@@ -38,20 +71,44 @@ public class PhysicalDigioController : IDigioController {
         _serialPort.DataBits = 8;
         _serialPort.StopBits = StopBits.One;
         _serialPort.Handshake = Handshake.None;
-        _serialPort.ReadTimeout = 100;
-        _serialPort.WriteTimeout = 100;
+        _serialPort.ReadTimeout = 500;
+        _serialPort.WriteTimeout = 500;
         _serialPort.Open();
-        if (await WriteAndReceive("XX") == "YY") {
+        Observable.Interval(TimeSpan.FromMilliseconds(10))
+            .TakeUntil(_isConnected.Skip(1).Where(connected => !connected))
+            .SelectMany(_ => GetNextOutput())
+            .Merge(_messages.Throttle(TimeSpan.FromMilliseconds(10))) //10ms delay in clock updates, to avoid spamming controller
+            .SubscribeOn(RxApp.MainThreadScheduler)
+            .ObserveOn(RxApp.TaskpoolScheduler)
+            .Subscribe(message => {
+                try {
+                    _serialPort?.Write($"<{message}>");
+                }
+                catch (Exception e) when (e is TimeoutException or InvalidOperationException or OperationCanceledException) {
+                    Disconnect();
+                }
+            });
+        _messages.OnNext("XX");
+        if (await DataSequence().ToObservable().FirstAsync() == "YY") {
             _currentPort.OnNext(port);
             _inputs.OnNext(Enumerable.Range(0, 8).Select(i => new Bit(i)).ToArray());
             _outputs.OnNext(Enumerable.Range(0, 8).Select(i => new Bit(i)).ToArray());
             _isConnected.OnNext(true);
-            Observable.Interval(TimeSpan.FromMilliseconds(20))
+            DataSequence().ToObservable()
+                .Where(response => response.Length != 0)
+                .Select(response => int.TryParse(response, NumberStyles.HexNumber, null, out int result) ? result : -1)
+                .Where(result => result != -1)
                 .TakeUntil(_isConnected.Where(connected => !connected))
-                .SelectMany(_ => Observable.FromAsync(SendUpdate))
-                .Where(response => response != String.Empty)
-                .SelectMany(response => Observable.FromAsync(() => ParseUpdate(response)))
-                .Subscribe();
+                .SubscribeOn(RxApp.TaskpoolScheduler)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .SelectMany(async output => {
+                    foreach (Bit input in await Inputs.FirstAsync()) {
+                        input.Set = (output & 1) == 1;
+                        output >>= 1;
+                    }
+                    return Unit.Default;
+                })
+                .Subscribe(_ => { }, Disconnect);
             return true;
         } else {
             Disconnect();
@@ -66,67 +123,12 @@ public class PhysicalDigioController : IDigioController {
             _currentPort.OnNext("");
         }
     }
-    public async Task SetClock(int frequencyHz) {
+    public void SetClock(int frequencyHz) {
         if (!_isConnected.Value) {
             throw new InvalidOperationException("Cannot set clock when not connected");
         }
         int clockRegister = frequencyHz == 0 ? 0 : 0x7A12 / frequencyHz;
         //This (and only this) value are sent in decimal rather than hex
-        await ImportantWrite($"C{clockRegister:D5}");
-    }
-
-    async Task<string> SendUpdate() {
-        Bit[] outputs = await Outputs.FirstAsync();
-        int result = 0;
-        foreach (Bit output in outputs.Where(output => output.Set)) {
-            result |= 1 << output.Position;
-        }
-        return await WriteAndReceive($"P{result:X2}");
-    }
-
-    async Task ParseUpdate(string update) {
-        int responseInt = int.Parse(update, NumberStyles.HexNumber);
-        foreach (Bit input in await Inputs.FirstAsync()) {
-            input.Set = (responseInt & 1) == 1;
-            responseInt >>= 1;
-        }
-    }
-
-    //High failure rate (messages will be lost if read takes longer than usual), but that's not a big deal with this protocol
-    async Task<string> WriteAndReceive(string toWrite) {
-        if (_serialPort is null || !_serialPort.IsOpen) {
-            Disconnect();
-        }
-        return await Task.Run(() => {
-            string result = String.Empty;
-            if (Monitor.TryEnter(_serialLock)) {
-                try {
-                    _serialPort?.Write($"<{toWrite}>");
-                    _serialPort?.ReadTo("<");
-                    result = _serialPort?.ReadTo(">") ?? string.Empty;
-                }
-                catch (TimeoutException) { }
-                catch (InvalidOperationException) { }
-                finally {
-                    Monitor.Exit(_serialLock);
-                }
-            }
-            return result;
-        });
-    }
-    //This write should be more reliable, meant for information that won't immediately be retransmitted
-    async Task ImportantWrite(string toWrite) {
-        await Task.Run(() => {
-            lock (_serialLock) {
-                bool done = false;
-                while (!done) {
-                    try {
-                        _serialPort?.Write($"<{toWrite}>");
-                        done = true;
-                    }
-                    catch (TimeoutException) { }
-                }
-            }
-        });
+        _messages.OnNext($"C{clockRegister:D5}");
     }
 }

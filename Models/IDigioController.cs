@@ -29,5 +29,5 @@ public interface IDigioController {
     }
     Task<bool> TryConnect(string port);
     void Disconnect();
-    Task SetClock(int frequencyHz);
+    void SetClock(int frequencyHz);
 }
