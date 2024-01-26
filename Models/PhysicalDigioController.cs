@@ -94,7 +94,7 @@ public class PhysicalDigioController : IDigioController {
                 }
             });
         _messages.OnNext("XX");
-        if (await DataSequence().ToObservable()
+        if (await DataSequence().ToObservable().Timeout(TimeSpan.FromSeconds(1))
                 .Catch((TimeoutException e) => Observable.Return("")).FirstAsync() == "YY") {
             _currentPort.OnNext(port);
             _inputs.OnNext(Enumerable.Range(0, 8).Select(i => new Bit(i)).ToArray());
